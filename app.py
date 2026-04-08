@@ -15,7 +15,7 @@ def load_data(year):
         return pd.DataFrame()
 
 st.sidebar.header("⚙️ 設定條件")
-selected_year = st.sidebar.selectbox("選擇賽季", [2023, 2022, 2021])
+selected_year = st.sidebar.selectbox("選擇賽季", [2023, 2024, 2025])
 
 data = load_data(selected_year)
 
