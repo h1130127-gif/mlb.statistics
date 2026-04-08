@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="MLB 數據儀表板", page_icon="⚾")
-st.title("⚾ MLB 數據儀表板 (完整終極版)")
+st.title("⚾ MLB 數據儀表板")
 
 # 加入 year 參數，並保留欄位名稱修復功能
 @st.cache_data
