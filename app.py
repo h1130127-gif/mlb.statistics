@@ -3,7 +3,7 @@ import pandas as pd
 
 # 【美化技巧】：加入 layout="wide" 讓網站自動填滿整個螢幕寬度
 st.set_page_config(page_title="MLB 數據儀表板", page_icon="⚾", layout="wide")
-st.title("⚾ MLB 數據儀表板 (豪華視覺版)")
+st.title("⚾ MLB 數據儀表板")
 
 @st.cache_data
 def load_data(year):
