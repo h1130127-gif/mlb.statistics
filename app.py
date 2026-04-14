@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-# 1. 網頁基本設定 (縮略圖與標題)
+# 1. 網頁基本設定
 st.set_page_config(page_title="MLB 砲火展示台", page_icon="⚾", layout="wide")
 
-# 2. 注入自訂 CSS 樣式 (保留霓虹動態版)
+# 2. 注入自訂 CSS 樣式 (修復輸入框文字隱形問題)
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%); color: white; }
@@ -22,13 +22,25 @@ st.markdown("""
         color: #00ffff !important; font-weight: bold !important;
         background: -webkit-linear-gradient(#00ffff, #0099ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .stTextInput>div>div>input { background-color: rgba(255, 255, 255, 0.1) !important; color: white !important; }
+    
+    /* 🔥 修復的輸入框 CSS */
+    [data-baseweb="input"] {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    [data-baseweb="input"] input {
+        color: white !important;
+        -webkit-text-fill-color: white !important; /* 強制文字填色為白色 */
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# 🗃️ 圖片資料庫 (保留完整的 30 隊 Logo)
+# 🗃️ 圖片資料庫 (將 SVG 換成穩定的 PNG)
 # ==============================
+# 穩定的 MLB 官方 Logo PNG 連結
+MLB_LOGO_PNG = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Major_League_Baseball_logo.svg/1024px-Major_League_Baseball_logo.svg.png"
+
 TEAM_LOGOS = {
     "ATL": "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png", "MIA": "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png",
     "NYM": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png", "PHI": "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png",
@@ -45,10 +57,9 @@ TEAM_LOGOS = {
     "MIN": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png", "HOU": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png",
     "LAA": "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png", "OAK": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
     "SEA": "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png", "TEX": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
-    "TOT": "https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg" # 交易球員預設 Logo
+    "TOT": MLB_LOGO_PNG # 替換為穩定的 PNG
 }
 
-# 球星照片字典 (保留現有設定)
 PLAYER_PHOTOS = {
     "Shohei Ohtani": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39832.png",
     "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
@@ -57,72 +68,59 @@ PLAYER_PHOTOS = {
     "Freddie Freeman": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30193.png",
     "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png"
 }
-# 預設圖片設定
 DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
-DEFAULT_TEAM_LOGO = "https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg"
+DEFAULT_TEAM_LOGO = MLB_LOGO_PNG # 替換為穩定的 PNG
 
 # ==============================
 # 🧩 網頁內容排版與邏輯
 # ==============================
-# 側邊欄設定
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", width=80)
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
 selected_year = st.sidebar.selectbox("📅 選擇賽季", [2023, 2024, 2025])
 
-# --- 【這裡就是修改的地方】 ---
-# 主畫面 Banner (將原本的 Unsplash 網址換成 MLB 的 SVG Logo)
-st.image("https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg", use_container_width=True)
-# -----------------------------
+# --- 🔥 修復的主畫面 Banner ---
+col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+with col_logo2: # 讓 Logo 置中，看起來更精緻
+    st.image(MLB_LOGO_PNG, use_container_width=True)
+st.markdown("<br>", unsafe_allow_html=True)
+# ------------------------------
 
 st.title("⚾ MLB")
 
-# 數據載入函數
 @st.cache_data
 def load_data(year):
     try:
         df = pd.read_csv(f"mlb_{year}.csv")
-        # 清除欄位空格
         df.columns = df.columns.str.strip()
         return df
     except Exception:
-        # 找不到檔案時回傳空表格，不讓程式崩潰
         return pd.DataFrame()
 
-# 執行載入
 data = load_data(selected_year)
 
-# 網頁主體邏輯
 if not data.empty:
     search_name = st.text_input("🔍 搜尋球員 (例如: Ohtani, Judge, Soto)", "")
     
-    # 自動抓取姓名與球隊欄位名稱
     name_col = 'Name' if 'Name' in data.columns else (data.columns[1] if len(data.columns) > 1 else data.columns[0])
     team_col = next((col for col in ['Tm', 'Team', 'team'] if col in data.columns), None)
     
     if search_name:
-        # 進行搜尋
         filtered_data = data[data[name_col].astype(str).str.contains(search_name, case=False, na=False)]
         
         if not filtered_data.empty:
             st.success(f"找到了！共 {len(filtered_data)} 位球員", icon="✅")
             
-            # 取第一筆結果做詳細顯示
             player = filtered_data.iloc[0]
-            # 取得球隊縮寫，沒有時預設為 TOT
             team_code = player[team_col] if team_col else "TOT"
             
-            # 【視覺排版】：大頭照與球隊資訊
-            st.markdown("<br>", unsafe_allow_html=True) # 加一點空白
+            st.markdown("<br>", unsafe_allow_html=True)
             col_pic, col_info = st.columns([1, 5])
             
             with col_pic:
-                # 顯示球員照片
                 st.image(PLAYER_PHOTOS.get(player[name_col], DEFAULT_PLAYER_PHOTO), width=120)
                 
             with col_info:
-                # 顯示名字
                 st.markdown(f"<h2 style='margin-bottom:0;'>{player[name_col]}</h2>", unsafe_allow_html=True)
-                # 顯示球隊 Logo 與縮寫
                 st.markdown(f"""
                     <div style='display: flex; align-items: center; gap: 10px; margin-top: 5px;'>
                         <img src='{TEAM_LOGOS.get(team_code, DEFAULT_TEAM_LOGO)}' width='35'>
@@ -132,9 +130,7 @@ if not data.empty:
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # 【視覺排版】：數據看板
             c1, c2, c3, c4 = st.columns(4)
-            # 使用 CSS 霓虹特效
             c1.metric(label="🔥 全壘打 (HR)", value=player.get('HR', 0))
             c2.metric(label="🎯 打擊率 (BA)", value=player.get('BA', 0.0))
             c3.metric(label="💥 攻擊指數 (OPS)", value=player.get('OPS', 0.0))
@@ -142,12 +138,10 @@ if not data.empty:
             
             st.markdown("---")
             st.write("📊 詳細數據表格：")
-            # 顯示表格
             st.dataframe(filtered_data, use_container_width=True)
         else:
             st.warning("查無此人，請確認拼字。", icon="⚠️")
             
     else:
-        # 未搜尋時顯示預覽
         st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
         st.dataframe(data.head(15), use_container_width=True)
