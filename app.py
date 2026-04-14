@@ -1,160 +1,125 @@
 import streamlit as st
 import pandas as pd
 
-# 【美化技巧】：加入 layout="wide" 並設定網頁標題
-st.set_page_config(page_title="MLB statistics", page_icon="⚾", layout="wide")
+# 1. 網頁基本設定
+st.set_page_config(page_title="MLB 砲火展示台", page_icon="⚾", layout="wide")
 
-# ==============================
-# 🧰 【核心魔法】：注入自訂 CSS 樣式
-# ==============================
+# 2. 注入自訂 CSS 樣式 (霓虹動態版)
 st.markdown("""
 <style>
-    /* 1. 設定整體網頁漸層背景 (運動藍) */
-    .stApp {
-        background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%);
-        color: white;
-    }
-    
-    /* 2. 美化側邊欄 */
-    [data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.05);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
-    }
-    
-    /* 3. 美化主標題與副標題顏色 */
-    h1, h2, h3, p {
-        color: white !important;
-        font-family: 'Open Sans', sans-serif;
-    }
-    .stMarkdown p {
-        color: rgba(255,255,255,0.8) !important;
-    }
-
-    /* 4. 【核心美化】：Metric 卡片 (戰力看板) */
+    .stApp { background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%); color: white; }
+    [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
+    h1, h2, h3, p, span { color: white !important; font-family: 'Open Sans', sans-serif; }
     [data-testid="metric-container"] {
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 20px 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        
-        /* 【動態效果】：加入平滑過渡動畫 */
-        transition: all 0.3s ease-in-out;
+        background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px; padding: 20px 15px; transition: all 0.3s ease-in-out;
     }
-    
-    /* 【動態效果】：滑鼠懸停時卡片浮起、變亮、加陰影 */
     [data-testid="metric-container"]:hover {
-        transform: translateY(-5px); /* 向上浮動 */
-        background-color: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3); /* 霓虹藍陰影 */
-        border-color: rgba(0, 255, 255, 0.5);
-    }
-    
-    /* 美化 Metric 標籤與數值文字 */
-    [data-testid="stMetricLabel"] {
-        color: rgba(255,255,255,0.7) !important;
-        font-size: 16px !important;
+        transform: translateY(-5px); background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3); border-color: rgba(0, 255, 255, 0.5);
     }
     [data-testid="stMetricValue"] {
-        color: #00ffff !important; /* 霓虹青色 */
-        font-weight: bold !important;
-        background: -webkit-linear-gradient(#00ffff, #0099ff); /* 文字漸層 */
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #00ffff !important; font-weight: bold !important;
+        background: -webkit-linear-gradient(#00ffff, #0099ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-
-    /* 5. 美化輸入框 */
-    .stTextInput>div>div>input {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-        border-radius: 10px !important;
-    }
-    .stTextInput>div>div>input:focus {
-        border-color: #00ffff !important;
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5) !important;
-    }
-
-    /* 6. 【動態效果】：自訂 Fade-in (淡入) 動畫 */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* 將動畫應用在搜尋後的結果區域 */
-    .stDataFrame, [data-testid="stHeader"] + div {
-        animation: fadeIn 0.8s ease-out;
-    }
-
+    .stTextInput>div>div>input { background-color: rgba(255, 255, 255, 0.1) !important; color: white !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# 🧩 網頁內容與邏輯
+# 🗃️ 圖片資料庫 (這裡就是你剛剛問要替換的部分)
 # ==============================
+TEAM_LOGOS = {
+    # 國家聯盟
+    "ATL": "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png", "MIA": "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png",
+    "NYM": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png", "PHI": "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png",
+    "WSN": "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png", "CHC": "https://a.espncdn.com/i/teamlogos/mlb/500/chc.png",
+    "CIN": "https://a.espncdn.com/i/teamlogos/mlb/500/cin.png", "MIL": "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png",
+    "PIT": "https://a.espncdn.com/i/teamlogos/mlb/500/pit.png", "STL": "https://a.espncdn.com/i/teamlogos/mlb/500/stl.png",
+    "ARI": "https://a.espncdn.com/i/teamlogos/mlb/500/ari.png", "COL": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png",
+    "LAD": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png", "SDP": "https://a.espncdn.com/i/teamlogos/mlb/500/sd.png",
+    "SFG": "https://a.espncdn.com/i/teamlogos/mlb/500/sf.png",
+    # 美國聯盟
+    "BAL": "https://a.espncdn.com/i/teamlogos/mlb/500/bal.png", "BOS": "https://a.espncdn.com/i/teamlogos/mlb/500/bos.png",
+    "NYY": "https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png", "TBR": "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png",
+    "TOR": "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png", "CHW": "https://a.espncdn.com/i/teamlogos/mlb/500/chw.png",
+    "CLE": "https://a.espncdn.com/i/teamlogos/mlb/500/cle.png", "DET": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png",
+    "KCR": "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",  "MIN": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png",
+    "HOU": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png", "LAA": "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png",
+    "OAK": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png", "SEA": "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png",
+    "TEX": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png", "TOT": "https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg"
+}
 
-# 側邊欄設定
+PLAYER_PHOTOS = {
+    "Shohei Ohtani": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39832.png",
+    "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
+    "Mike Trout": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30836.png",
+    "Mookie Betts": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33039.png",
+    "Freddie Freeman": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30193.png",
+    "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png"
+}
+DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
+DEFAULT_TEAM_LOGO = "https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg"
+
+# ==============================
+# 🧩 網頁邏輯
+# ==============================
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", width=80)
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
-selected_year = st.sidebar.selectbox("📅 選擇賽季", [2023, 2024, 2025])
+selected_year = st.sidebar.selectbox("📅 選擇賽季", [2023, 2022, 2021])
 
-# 主畫面 Banner
 st.image("https://images.unsplash.com/photo-1508344928928-7165b67de128?w=1200&q=80", use_container_width=True)
-st.title("⚾ MLB 砲火展示台 (霓虹動態版)")
-st.markdown(f"這是一個自動修復、永遠穩定的打者數據庫，目前搜尋 **{selected_year}** 年數據。")
+st.title("⚾ MLB 砲火展示台")
 
 @st.cache_data
 def load_data(year):
     try:
         df = pd.read_csv(f"mlb_{year}.csv")
-        df.columns = df.columns.str.strip() # 自動修復欄位空格
+        df.columns = df.columns.str.strip()
         return df
-    except Exception as e:
-        st.error(f"找不到 {year} 年的資料檔案！請檢查 GitHub。", icon="🚨")
+    except Exception:
         return pd.DataFrame()
 
-# 載入資料
 data = load_data(selected_year)
 
 if not data.empty:
-    search_name = st.text_input("🔍 搜尋球員 (例如: Ohtani, Judge)", "")
+    search_name = st.text_input("🔍 搜尋球員 (例如: Ohtani, Judge, Soto)", "")
     
-    # 自動尋找姓名與球隊欄位
+    # 自動抓欄位名稱
     name_col = 'Name' if 'Name' in data.columns else (data.columns[1] if len(data.columns) > 1 else data.columns[0])
     team_col = next((col for col in ['Tm', 'Team', 'team'] if col in data.columns), None)
     
-    # 組合顯示欄位
-    display_cols = [name_col, 'Age'] + ([team_col] if team_col else []) + ['G', 'HR', 'SB', 'BA', 'OBP', 'SLG', 'OPS']
-    available_cols = [col for col in display_cols if col in data.columns]
-    
     if search_name:
-        # 搜尋功能 (astype確保不崩潰)
         filtered_data = data[data[name_col].astype(str).str.contains(search_name, case=False, na=False)]
         
         if not filtered_data.empty:
-            st.success(f"找到了！共 {len(filtered_data)} 位球員", icon="✅")
-            
             player = filtered_data.iloc[0]
-            team_display = player[team_col] if team_col else "未知球隊"
+            team_code = player[team_col] if team_col else "TOT"
             
-            # 加上 Emoji 裝飾
-            st.subheader(f"🏟️ {player[name_col]} ｜ 🛡️ {team_display}")
+            # 顯示球員照片與球隊 Logo
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_pic, col_info = st.columns([1, 5])
+            with col_pic:
+                st.image(PLAYER_PHOTOS.get(player[name_col], DEFAULT_PLAYER_PHOTO), width=120)
+            with col_info:
+                st.markdown(f"<h2 style='margin-bottom:0;'>{player[name_col]}</h2>", unsafe_allow_html=True)
+                st.markdown(f"""
+                    <div style='display: flex; align-items: center; gap: 10px; margin-top: 5px;'>
+                        <img src='{TEAM_LOGOS.get(team_code, DEFAULT_TEAM_LOGO)}' width='35'>
+                        <span style='font-size: 1.2em; color: #ccc;'>{team_code}</span>
+                    </div>
+                """, unsafe_allow_html=True)
             
-            # 【美化核心】：使用 Columns 進行 Metric 排版，CSS 會自動套用樣式
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric(label="🔥 全壘打 (HR)", value=player.get('HR', 0))
-            col2.metric(label="🎯 打擊率 (BA)", value=player.get('BA', 0.0))
-            col3.metric(label="💥 攻擊指數 (OPS)", value=player.get('OPS', 0.0))
-            col4.metric(label="💨 盜壘 (SB)", value=player.get('SB', 0))
+            st.markdown("<br>", unsafe_allow_html=True)
+            # 數據看板
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("🔥 HR", player.get('HR', 0))
+            c2.metric("🎯 BA", player.get('BA', 0.0))
+            c3.metric("💥 OPS", player.get('OPS', 0.0))
+            c4.metric("💨 SB", player.get('SB', 0))
             
             st.markdown("---")
-            st.write("📊 詳細數據表格：")
-            # 表格會觸發 Fade-in 動畫
-            st.dataframe(filtered_data[available_cols], use_container_width=True)
-        else:
-            st.warning("查無此人，請確認拼字。", icon="⚠️")
-            
+            st.dataframe(filtered_data, use_container_width=True)
     else:
-        st.info(f"💡 目前顯示 **{selected_year}** 年全聯盟數據預覽：", icon="💡")
-        st.dataframe(data[available_cols].head(15), use_container_width=True)
+        st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
+        st.dataframe(data.head(15), use_container_width=True)
