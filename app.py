@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 1. 網頁基本設定
-st.set_page_config(page_title="MLB 砲火展示台", page_icon="⚾", layout="wide")
+st.set_page_config(page_title="MLB", page_icon="⚾", layout="wide")
 
 # 2. 注入自訂 CSS 樣式 (霓虹動態版)
 st.markdown("""
@@ -66,7 +66,7 @@ DEFAULT_TEAM_LOGO = "https://www.mlbstatic.com/team-logos/league-on-dark/mlb.svg
 # ==============================
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", width=80)
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
-selected_year = st.sidebar.selectbox("📅 選擇賽季", [2023, 2022, 2021])
+selected_year = st.sidebar.selectbox("📅 選擇賽季", [2023, 2024, 2025])
 
 st.image("https://images.unsplash.com/photo-1508344928928-7165b67de128?w=1200&q=80", use_container_width=True)
 st.title("⚾ MLB 砲火展示台")
