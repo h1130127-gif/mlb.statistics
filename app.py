@@ -4,7 +4,7 @@ import pandas as pd
 # 1. 網頁基本設定
 st.set_page_config(page_title="MLB 數據看板", page_icon="⚾", layout="wide")
 
-# 2. 注入自訂 CSS 樣式 (解決輸入框看不見與文字隱形問題)
+# 2. 注入自訂 CSS 樣式 (🔥 暴力破解法：白底黑字)
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%); color: white; }
@@ -24,26 +24,30 @@ st.markdown("""
         background: -webkit-linear-gradient(#00ffff, #0099ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     
-    /* 🔥 輸入框終極修復：強制深背景、白色字、青色邊框 */
-    .stTextInput div[data-baseweb="input"] {
-        background-color: #0d1117 !important;
-        border: 2px solid #00ffff !important; /* 加上明顯的青色邊框 */
-        border-radius: 10px !important;
+    /* 🔥 暴力破解：強制讓輸入框變成「傳統白底 + 純黑字」 */
+    div[data-baseweb="base-input"], div[data-baseweb="input"] {
+        background-color: #ffffff !important;
+        border: 2px solid #00ffff !important;
+        border-radius: 8px !important;
     }
-    .stTextInput input {
-        color: white !important;
-        -webkit-text-fill-color: white !important;
+    div[data-baseweb="input"] input, .stTextInput input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important; /* 絕對禁止變成白色 */
+        font-weight: bold !important;
+        font-size: 16px !important;
     }
-    /* 調整標籤文字顏色 */
+    /* 讓輸入框上方的標題保持青色醒目 */
     .stTextInput label {
         color: #00ffff !important;
         font-weight: bold !important;
+        font-size: 1.1em !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# 🗃️ 圖片資料庫 (使用 ESPN 穩定連結)
+# 🗃️ 圖片資料庫 (穩定版)
 # ==============================
 MLB_LOGO_URL = "https://a.espncdn.com/i/teamlogos/mlb/500/mlb.png"
 
@@ -79,17 +83,14 @@ DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
 # ==============================
 # 🧩 網頁內容排版與邏輯
 # ==============================
-# 側邊欄設定
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", width=80)
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
 
-# 年份改為 2025, 2024, 2023
 selected_year = st.sidebar.selectbox("📅 選擇賽季", [2025, 2024, 2023])
 
-# 主畫面 Banner (MLB Logo)
 col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
 with col_logo2: 
-    st.image(MLB_LOGO_URL, width=200) # 設定固定寬度避免過大
+    st.image(MLB_LOGO_URL, width=200)
 
 @st.cache_data
 def load_data(year):
@@ -103,7 +104,6 @@ def load_data(year):
 data = load_data(selected_year)
 
 if not data.empty:
-    # 搜尋框 (加上了 CSS 修復)
     search_name = st.text_input("🔍 搜尋球員名字 (Search Player Name)", "")
     
     name_col = 'Name' if 'Name' in data.columns else (data.columns[1] if len(data.columns) > 1 else data.columns[0])
