@@ -139,25 +139,72 @@ if not data.empty:
             
             # --- 顯示當前選擇年份的數據 ---
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric(label="🔥 全壘打 (HR)", value=player.get('HR', 0))
-            c2.metric(label="🎯 打擊率 (BA)", value=player.get('BA', 0.0))
-            c3.metric(label="💥 攻擊指數 (OPS)", value=player.get('OPS', 0.0))
-            c4.metric(label="💨 盜壘 (SB)", value=player.get('SB', 0))
+            c1.metric(label="🔥 全壘打 (HR)", value=int(player.get('HR', 0)))
+            c2.metric(label="🎯 打擊率 (BA)", value=f"{float(player.get('BA', 0.0)):.3f}")
+            c3.metric(label="💥 攻擊指數 (OPS)", value=f"{float(player.get('OPS', 0.0)):.3f}")
+            c4.metric(label="💨 盜壘 (SB)", value=int(player.get('SB', 0)))
             
             st.markdown("---")
             
-            # 🔥 表格美化：使用 Pandas Style 魔術
+            # ==========================================
+            # 📈 Plotly 升級版：跨賽季數據軌跡 (完美回歸！)
+            # ==========================================
+            st.markdown("### 📈 跨賽季數據軌跡 (2023 - 2025)")
+            
+            trend_records = []
+            for y in [2023, 2024, 2025]:
+                df_year = load_data(y)
+                if not df_year.empty and name_col in df_year.columns:
+                    p_match = df_year[df_year[name_col].astype(str).str.contains(search_name, case=False, na=False)]
+                    if not p_match.empty:
+                        trend_records.append({
+                            "Year": str(y),
+                            "HR": float(p_match.iloc[0].get('HR', 0)),
+                            "OPS": float(p_match.iloc[0].get('OPS', 0.0)),
+                            "BA": float(p_match.iloc[0].get('BA', 0.0))
+                        })
+            
+            if len(trend_records) > 0:
+                trend_df = pd.DataFrame(trend_records).sort_values(by="Year")
+                
+                tab1, tab2, tab3 = st.tabs(["🔥 全壘打趨勢", "💥 OPS 趨勢", "🎯 打擊率趨勢"])
+                
+                with tab1:
+                    fig_hr = create_beautiful_chart(trend_df, "HR", "#ff4b4b", "⚾ 全壘打總數 (支)")
+                    st.plotly_chart(fig_hr, use_container_width=True)
+                with tab2:
+                    fig_ops = create_beautiful_chart(trend_df, "OPS", "#00ffff", "💥 攻擊指數 (OPS)")
+                    st.plotly_chart(fig_ops, use_container_width=True)
+                with tab3:
+                    fig_ba = create_beautiful_chart(trend_df, "BA", "#00ff00", "🎯 打擊率 (AVG)")
+                    st.plotly_chart(fig_ba, use_container_width=True)
+            else:
+                st.info("📊 尚未累積足夠的歷史賽季數據。")
+            
+            st.markdown("---")
+            
+            # ==========================================
+            # 📋 表格美化：Pandas Style 魔術 (小數點嚴格控制)
+            # ==========================================
             st.markdown("### 📋 詳細數據表")
             
-            # 給搜尋結果表格加上顏色漸層和小數點格式
-            styled_df = filtered_data.style.format({
-                "BA": "{:.3f}",   # 打擊率強制顯示三位小數 (例如 0.300)
-                "OPS": "{:.3f}"   # OPS 也顯示三位小數
-            }).background_gradient(
-                cmap="YlOrRd",    # 設定顏色主題為 黃(Yl) -> 橘(Or) -> 紅(Rd)
-                subset=["HR"]     # 指定只有「全壘打(HR)」欄位要套用這個熱力圖效果
-            )
+            # 針對搜尋結果的表格進行精準的格式化
+            # 使用 try-except 避免某些欄位不存在而報錯
+            format_dict = {}
+            if 'BA' in filtered_data.columns: format_dict['BA'] = "{:.3f}"
+            if 'OPS' in filtered_data.columns: format_dict['OPS'] = "{:.3f}"
+            if 'OBP' in filtered_data.columns: format_dict['OBP'] = "{:.3f}"
+            if 'SLG' in filtered_data.columns: format_dict['SLG'] = "{:.3f}"
+            if 'HR' in filtered_data.columns: format_dict['HR'] = "{:.0f}"
+            if 'SB' in filtered_data.columns: format_dict['SB'] = "{:.0f}"
+            if 'RBI' in filtered_data.columns: format_dict['RBI'] = "{:.0f}"
+
+            styled_df = filtered_data.style.format(format_dict)
             
+            # 只有當 HR 欄位存在時才套用熱力圖，避免報錯
+            if 'HR' in filtered_data.columns:
+                styled_df = styled_df.background_gradient(cmap="YlOrRd", subset=["HR"])
+                
             st.dataframe(styled_df, hide_index=True, use_container_width=True)
             
         else:
@@ -166,15 +213,18 @@ if not data.empty:
     else:
         st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
         
-        # 首頁的預覽表格也一起加上漸層魔法！
-        preview_df = data.head(15).style.format({
-            "BA": "{:.3f}",
-            "OPS": "{:.3f}"
-        }).background_gradient(
-            cmap="YlOrRd", 
-            subset=["HR"]
-        )
+        # 針對首頁預覽表格也做一樣的小數點嚴格控制
+        format_dict_preview = {}
+        if 'BA' in data.columns: format_dict_preview['BA'] = "{:.3f}"
+        if 'OPS' in data.columns: format_dict_preview['OPS'] = "{:.3f}"
+        if 'HR' in data.columns: format_dict_preview['HR'] = "{:.0f}"
         
+        preview_df = data.head(15).style.format(format_dict_preview)
+        
+        if 'HR' in data.columns:
+            preview_df = preview_df.background_gradient(cmap="YlOrRd", subset=["HR"])
+            
         st.dataframe(preview_df, hide_index=True, use_container_width=True)
+        
 else:
     st.error(f"找不到 mlb_{selected_year}.csv 檔案，請確認檔案已上傳至 GitHub。", icon="📂")
