@@ -227,18 +227,18 @@ if not data.empty:
             st.markdown("---")
             
             # ==========================================
-            # 📋 表格美化：Pandas Style 魔術 (小數點嚴格控制)
+            # 📋 表格美化：自動化清除無用小數點
             # ==========================================
             st.markdown("### 📋 詳細數據表")
             
             format_dict = {}
-            if 'BA' in filtered_data.columns: format_dict['BA'] = "{:.3f}"
-            if 'OBP' in filtered_data.columns: format_dict['OBP'] = "{:.3f}"
-            if 'SLG' in filtered_data.columns: format_dict['SLG'] = "{:.3f}"
-            if 'OPS' in filtered_data.columns: format_dict['OPS'] = "{:.3f}"
-            if 'HR' in filtered_data.columns: format_dict['HR'] = "{:.0f}"
-            if 'SB' in filtered_data.columns: format_dict['SB'] = "{:.0f}"
-            if 'RBI' in filtered_data.columns: format_dict['RBI'] = "{:.0f}"
+            for col in filtered_data.columns:
+                if col in ['BA', 'OBP', 'SLG', 'OPS', 'ERA', 'WHIP', 'AVG']:
+                    format_dict[col] = "{:.3f}"  # 比例數據保留 3 位小數
+                elif col in ['WAR', 'IP']:
+                    format_dict[col] = "{:.1f}"  # 貢獻值/局數保留 1 位小數
+                elif pd.api.types.is_numeric_dtype(filtered_data[col]):
+                    format_dict[col] = "{:.0f}"  # 其他全部強制轉回整數 (0 位小數)
 
             styled_df = filtered_data.style.format(format_dict)
             
@@ -253,13 +253,16 @@ if not data.empty:
     else:
         st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
         
+        # 預覽表的自動化除錯小數點
         format_dict_preview = {}
-        if 'BA' in data.columns: format_dict_preview['BA'] = "{:.3f}"
-        if 'OBP' in data.columns: format_dict_preview['OBP'] = "{:.3f}"
-        if 'SLG' in data.columns: format_dict_preview['SLG'] = "{:.3f}"
-        if 'OPS' in data.columns: format_dict_preview['OPS'] = "{:.3f}"
-        if 'HR' in data.columns: format_dict_preview['HR'] = "{:.0f}"
-        
+        for col in data.columns:
+            if col in ['BA', 'OBP', 'SLG', 'OPS', 'ERA', 'WHIP', 'AVG']:
+                format_dict_preview[col] = "{:.3f}"
+            elif col in ['WAR', 'IP']:
+                format_dict_preview[col] = "{:.1f}"
+            elif pd.api.types.is_numeric_dtype(data[col]):
+                format_dict_preview[col] = "{:.0f}"
+                
         preview_df = data.head(15).style.format(format_dict_preview)
         
         if 'HR' in data.columns:
