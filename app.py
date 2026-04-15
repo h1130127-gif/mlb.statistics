@@ -146,53 +146,35 @@ if not data.empty:
             
             st.markdown("---")
             
-            # ==========================================
-            # 📈 創意擴展：跨年份的生涯軌跡圖 (2023-2025)
-            # ==========================================
-            st.markdown("### 📈 跨賽季數據軌跡 (2023 - 2025)")
+            # 🔥 表格美化：使用 Pandas Style 魔術
+            st.markdown("### 📋 詳細數據表")
             
-            # 自動去抓 2023, 2024, 2025 的 CSV 找這個人
-            trend_records = []
-            for y in [2023, 2024, 2025]:
-                df_year = load_data(y)
-                if not df_year.empty and name_col in df_year.columns:
-                    p_match = df_year[df_year[name_col].astype(str).str.contains(search_name, case=False, na=False)]
-                    if not p_match.empty:
-                        # 將數據轉為浮點數存入清單
-                        trend_records.append({
-                            "Year": str(y),
-                            "HR": float(p_match.iloc[0].get('HR', 0)),
-                            "OPS": float(p_match.iloc[0].get('OPS', 0.0)),
-                            "BA": float(p_match.iloc[0].get('BA', 0.0))
-                        })
+            # 給搜尋結果表格加上顏色漸層和小數點格式
+            styled_df = filtered_data.style.format({
+                "BA": "{:.3f}",   # 打擊率強制顯示三位小數 (例如 0.300)
+                "OPS": "{:.3f}"   # OPS 也顯示三位小數
+            }).background_gradient(
+                cmap="YlOrRd",    # 設定顏色主題為 黃(Yl) -> 橘(Or) -> 紅(Rd)
+                subset=["HR"]     # 指定只有「全壘打(HR)」欄位要套用這個熱力圖效果
+            )
             
-            # 如果有找到至少一筆歷史數據，就畫圖
-            if len(trend_records) > 0:
-                # 整理成 DataFrame 並把 Year 設為 X 軸 (Index)
-                trend_df = pd.DataFrame(trend_records).set_index("Year")
-                trend_df = trend_df.sort_index() # 確保順序是 2023 -> 2024 -> 2025
-                
-                # 使用 Tabs 將三種圖表分開，才不會因為數值大小差異太大糊在一起
-                tab1, tab2, tab3 = st.tabs(["🔥 全壘打趨勢", "💥 OPS 趨勢", "🎯 打擊率趨勢"])
-                
-                with tab1:
-                    st.line_chart(trend_df[["HR"]], color="#ff4b4b") # 紅色線
-                with tab2:
-                    st.line_chart(trend_df[["OPS"]], color="#00ffff") # 青色線
-                with tab3:
-                    st.line_chart(trend_df[["BA"]], color="#00ff00") # 綠色線
-            else:
-                st.info("📊 尚未累積足夠的歷史賽季數據。")
-            
-            st.markdown("---")
-            # --- 顯示原始資料表 ---
-            st.dataframe(filtered_data, use_container_width=True)
+            st.dataframe(styled_df, hide_index=True, use_container_width=True)
             
         else:
             st.warning("查無此人，請確認拼字。", icon="⚠️")
             
     else:
         st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
-        st.dataframe(data.head(15), use_container_width=True)
+        
+        # 首頁的預覽表格也一起加上漸層魔法！
+        preview_df = data.head(15).style.format({
+            "BA": "{:.3f}",
+            "OPS": "{:.3f}"
+        }).background_gradient(
+            cmap="YlOrRd", 
+            subset=["HR"]
+        )
+        
+        st.dataframe(preview_df, hide_index=True, use_container_width=True)
 else:
     st.error(f"找不到 mlb_{selected_year}.csv 檔案，請確認檔案已上傳至 GitHub。", icon="📂")
