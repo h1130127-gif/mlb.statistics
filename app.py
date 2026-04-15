@@ -62,12 +62,37 @@ TEAM_LOGOS = {
 }
 
 PLAYER_PHOTOS = {
+    # ⚾ 道奇三巨頭
     "Shohei Ohtani": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39832.png",
-    "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
-    "Mike Trout": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30836.png",
     "Mookie Betts": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33039.png",
     "Freddie Freeman": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30193.png",
-    "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png"
+    
+    # ⚾ 洋基雙星 + 王牌
+    "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
+    "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png",
+    "Gerrit Cole": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32081.png",
+    
+    # ⚾ 其他國聯頂級球星
+    "Bryce Harper": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31696.png",
+    "Ronald Acuna Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39459.png",
+    "Ronald Acuña Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39459.png", # 防呆 (帶有波浪符號的拼法)
+    "Fernando Tatis Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35983.png",
+    "Manny Machado": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31097.png",
+    "Pete Alonso": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/37498.png",
+    "Matt Olson": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32767.png",
+    "Austin Riley": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/36329.png",
+    "Paul Goldschmidt": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31027.png",
+    "Corbin Carroll": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/42403.png",
+
+    # ⚾ 其他美聯頂級球星
+    "Mike Trout": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30836.png",
+    "Vladimir Guerrero Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35002.png",
+    "Francisco Lindor": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32129.png",
+    "Corey Seager": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32691.png",
+    "Yordan Alvarez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39876.png",
+    "Julio Rodriguez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/41044.png",
+    "Rafael Devers": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33859.png",
+    "Jose Ramirez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32801.png"
 }
 DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
 
