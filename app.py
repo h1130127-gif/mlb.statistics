@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # 1. 網頁基本設定
 st.set_page_config(page_title="MLB 數據看板", page_icon="⚾", layout="wide")
 
-# 2. 注入自訂 CSS 樣式 (極致核彈級修復)
+# 2. 注入自訂 CSS 樣式
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%); color: white; }
@@ -16,7 +17,6 @@ st.markdown("""
         border-radius: 15px; padding: 20px 15px; transition: all 0.3s ease-in-out;
     }
     
-    /* 🔥 終極輸入框修復：雪地寫黑字 */
     .stTextInput [data-baseweb="input"] {
         background-color: #ffffff !important;
         border: 2px solid #00ffff !important;
@@ -32,7 +32,6 @@ st.markdown("""
     }
     .stTextInput label { color: #00ffff !important; font-weight: bold !important; font-size: 1.1em !important; }
     
-    /* Tabs 標籤頁樣式微調 */
     .stTabs [data-baseweb="tab-list"] { gap: 24px; }
     .stTabs [data-baseweb="tab"] { color: #ccc !important; font-weight: bold; }
     .stTabs [aria-selected="true"] { color: #00ffff !important; }
@@ -40,26 +39,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# 🗃️ 圖片與字典設定 (豪華擴充版)
+# 🗃️ 圖片與字典設定
 # ==============================
 MLB_HTML_LOGO = "https://upload.wikimedia.org/wikipedia/commons/a/a6/Major_League_Baseball_logo.svg"
 
 TEAM_LOGOS = {
     "ATL": "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png", "MIA": "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png",
     "NYM": "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png", "PHI": "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png",
-    "WSN": "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png", "CHC": "https://a.espncdn.com/i/teamlogos/mlb/500/chc.png",
-    "CIN": "https://a.espncdn.com/i/teamlogos/mlb/500/cin.png", "MIL": "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png",
-    "PIT": "https://a.espncdn.com/i/teamlogos/mlb/500/pit.png", "STL": "https://a.espncdn.com/i/teamlogos/mlb/500/stl.png",
-    "ARI": "https://a.espncdn.com/i/teamlogos/mlb/500/ari.png", "COL": "https://a.espncdn.com/i/teamlogos/mlb/500/col.png",
     "LAD": "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png", "SDP": "https://a.espncdn.com/i/teamlogos/mlb/500/sd.png",
     "SFG": "https://a.espncdn.com/i/teamlogos/mlb/500/sf.png", "BAL": "https://a.espncdn.com/i/teamlogos/mlb/500/bal.png",
     "BOS": "https://a.espncdn.com/i/teamlogos/mlb/500/bos.png", "NYY": "https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png",
-    "TBR": "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png",  "TOR": "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png",
-    "CHW": "https://a.espncdn.com/i/teamlogos/mlb/500/chw.png", "CLE": "https://a.espncdn.com/i/teamlogos/mlb/500/cle.png",
-    "DET": "https://a.espncdn.com/i/teamlogos/mlb/500/det.png", "KCR": "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png",
-    "MIN": "https://a.espncdn.com/i/teamlogos/mlb/500/min.png", "HOU": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png",
-    "LAA": "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png", "OAK": "https://a.espncdn.com/i/teamlogos/mlb/500/oak.png",
-    "SEA": "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png", "TEX": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
+    "HOU": "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png", "TEX": "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png",
     "TOT": "https://cdn-icons-png.flaticon.com/512/3014/3014385.png" 
 }
 
@@ -69,16 +59,7 @@ PLAYER_PHOTOS = {
     "Freddie Freeman": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30193.png",
     "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
     "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png",
-    "Gerrit Cole": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32081.png",
     "Bryce Harper": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31696.png",
-    "Ronald Acuna Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39459.png",
-    "Fernando Tatis Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35983.png",
-    "Manny Machado": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31097.png",
-    "Pete Alonso": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/37498.png",
-    "Mike Trout": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30836.png",
-    "Vladimir Guerrero Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35002.png",
-    "Francisco Lindor": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32129.png",
-    "Yordan Alvarez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39876.png"
 }
 DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
 
@@ -105,13 +86,35 @@ def load_data(year):
     except Exception:
         return pd.DataFrame()
 
+# 🔥 這個就是剛剛弄丟的「圖表美化工具」
+def create_beautiful_chart(df, y_col, line_color, y_label):
+    fig = px.line(df, x="Year", y=y_col, text=y_col, markers=True)
+    fig.update_traces(
+        line_color=line_color, 
+        marker=dict(size=12, color="white", line=dict(width=2, color=line_color)),
+        textposition="top center", 
+        textfont=dict(size=14, color="white")
+    )
+    fig.update_layout(
+        xaxis_title="📅 賽季年份 (Year)",
+        yaxis_title=y_label,
+        plot_bgcolor="rgba(255,255,255,0.05)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        xaxis=dict(showgrid=False, type='category'),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.1)"),
+        margin=dict(l=20, r=20, t=20, b=20)
+    )
+    return fig
+
 data = load_data(selected_year)
 
 if not data.empty:
     search_name = st.text_input("🔍 搜尋球員名字 (例如: Ohtani, Judge, Soto)", "")
     
-    name_col = 'Name' if 'Name' in data.columns else (data.columns[1] if len(data.columns) > 1 else data.columns[0])
-    team_col = next((col for col in ['Tm', 'Team', 'team'] if col in data.columns), None)
+    # 根據你的截圖，動態抓取 Player 和 Team 欄位
+    name_col = 'Player' if 'Player' in data.columns else ('Name' if 'Name' in data.columns else data.columns[1])
+    team_col = next((col for col in ['Team', 'Tm', 'team'] if col in data.columns), None)
     
     if search_name:
         filtered_data = data[data[name_col].astype(str).str.contains(search_name, case=False, na=False)]
@@ -120,11 +123,14 @@ if not data.empty:
             player = filtered_data.iloc[0]
             team_code = player[team_col] if team_col else "TOT"
             
+            # 清除名字後面的 * 或 # 以便抓取照片
+            clean_name = player[name_col].replace('*', '').replace('#', '').strip()
+            
             st.markdown("<br>", unsafe_allow_html=True)
             col_pic, col_info = st.columns([1, 5])
             
             with col_pic:
-                st.image(PLAYER_PHOTOS.get(player[name_col], DEFAULT_PLAYER_PHOTO), width=120)
+                st.image(PLAYER_PHOTOS.get(clean_name, DEFAULT_PLAYER_PHOTO), width=120)
                 
             with col_info:
                 st.markdown(f"<h2 style='margin-bottom:0;'>{player[name_col]}</h2>", unsafe_allow_html=True)
@@ -137,7 +143,7 @@ if not data.empty:
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # --- 顯示當前選擇年份的數據 ---
+            # --- 四大數據看板 (加上防呆格式) ---
             c1, c2, c3, c4 = st.columns(4)
             c1.metric(label="🔥 全壘打 (HR)", value=int(player.get('HR', 0)))
             c2.metric(label="🎯 打擊率 (BA)", value=f"{float(player.get('BA', 0.0)):.3f}")
@@ -147,7 +153,7 @@ if not data.empty:
             st.markdown("---")
             
             # ==========================================
-            # 📈 Plotly 升級版：跨賽季數據軌跡 (完美回歸！)
+            # 📈 Plotly 升級版：跨賽季數據軌跡
             # ==========================================
             st.markdown("### 📈 跨賽季數據軌跡 (2023 - 2025)")
             
@@ -188,20 +194,17 @@ if not data.empty:
             # ==========================================
             st.markdown("### 📋 詳細數據表")
             
-            # 針對搜尋結果的表格進行精準的格式化
-            # 使用 try-except 避免某些欄位不存在而報錯
             format_dict = {}
             if 'BA' in filtered_data.columns: format_dict['BA'] = "{:.3f}"
-            if 'OPS' in filtered_data.columns: format_dict['OPS'] = "{:.3f}"
             if 'OBP' in filtered_data.columns: format_dict['OBP'] = "{:.3f}"
             if 'SLG' in filtered_data.columns: format_dict['SLG'] = "{:.3f}"
+            if 'OPS' in filtered_data.columns: format_dict['OPS'] = "{:.3f}"
             if 'HR' in filtered_data.columns: format_dict['HR'] = "{:.0f}"
             if 'SB' in filtered_data.columns: format_dict['SB'] = "{:.0f}"
             if 'RBI' in filtered_data.columns: format_dict['RBI'] = "{:.0f}"
 
             styled_df = filtered_data.style.format(format_dict)
             
-            # 只有當 HR 欄位存在時才套用熱力圖，避免報錯
             if 'HR' in filtered_data.columns:
                 styled_df = styled_df.background_gradient(cmap="YlOrRd", subset=["HR"])
                 
@@ -213,9 +216,10 @@ if not data.empty:
     else:
         st.info(f"💡 目前顯示 {selected_year} 年數據預覽")
         
-        # 針對首頁預覽表格也做一樣的小數點嚴格控制
         format_dict_preview = {}
         if 'BA' in data.columns: format_dict_preview['BA'] = "{:.3f}"
+        if 'OBP' in data.columns: format_dict_preview['OBP'] = "{:.3f}"
+        if 'SLG' in data.columns: format_dict_preview['SLG'] = "{:.3f}"
         if 'OPS' in data.columns: format_dict_preview['OPS'] = "{:.3f}"
         if 'HR' in data.columns: format_dict_preview['HR'] = "{:.0f}"
         
