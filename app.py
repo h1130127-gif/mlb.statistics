@@ -86,7 +86,6 @@ def load_data(year):
     except Exception:
         return pd.DataFrame()
 
-# 🔥 這個就是剛剛弄丟的「圖表美化工具」
 def create_beautiful_chart(df, y_col, line_color, y_label):
     fig = px.line(df, x="Year", y=y_col, text=y_col, markers=True)
     fig.update_traces(
@@ -112,7 +111,7 @@ data = load_data(selected_year)
 if not data.empty:
     search_name = st.text_input("🔍 搜尋球員名字 (例如: Ohtani, Judge, Soto)", "")
     
-    # 根據你的截圖，動態抓取 Player 和 Team 欄位
+    # 動態抓取 Player 和 Team 欄位
     name_col = 'Player' if 'Player' in data.columns else ('Name' if 'Name' in data.columns else data.columns[1])
     team_col = next((col for col in ['Team', 'Tm', 'team'] if col in data.columns), None)
     
@@ -143,12 +142,50 @@ if not data.empty:
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # --- 四大數據看板 (加上防呆格式) ---
+            # --- 四大數據看板 ---
             c1, c2, c3, c4 = st.columns(4)
             c1.metric(label="🔥 全壘打 (HR)", value=int(player.get('HR', 0)))
             c2.metric(label="🎯 打擊率 (BA)", value=f"{float(player.get('BA', 0.0)):.3f}")
             c3.metric(label="💥 攻擊指數 (OPS)", value=f"{float(player.get('OPS', 0.0)):.3f}")
             c4.metric(label="💨 盜壘 (SB)", value=int(player.get('SB', 0)))
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # ==========================================
+            # 🤖 動態 AI 球探報告
+            # ==========================================
+            st.markdown("### 🤖 動態 AI 球探報告")
+            
+            hr_val = float(player.get('HR', 0))
+            ba_val = float(player.get('BA', 0))
+            ops_val = float(player.get('OPS', 0))
+            sb_val = float(player.get('SB', 0))
+            
+            report_lines = []
+            
+            if hr_val >= 40:
+                report_lines.append(f"展現了**怪物級的長打火力** ({int(hr_val)} 轟)，是令全聯盟投手聞風喪膽的頂級重砲手。")
+            elif hr_val >= 20:
+                report_lines.append(f"具備優秀的全壘打產量 ({int(hr_val)} 轟)，能為球隊提供十分穩定的中心火力輸出。")
+            
+            if ops_val >= 0.900:
+                report_lines.append(f"整體的攻擊指數高達 **{ops_val:.3f}**，這絕對是年度 MVP 級別的核彈級打者！")
+            elif ops_val >= 0.800:
+                report_lines.append(f"選球與長打綜合能力 (OPS {ops_val:.3f}) 相當出色，是打線上的核心人物。")
+                
+            if ba_val >= 0.300:
+                report_lines.append("打擊技巧極佳，能精準擊中各種球路，維持著 3 成以上的夢幻打擊率。")
+                
+            if sb_val >= 30:
+                report_lines.append(f"在壘包上的破壞力驚人 ({int(sb_val)} 盜)，是一名頂級的「腿哥」，隨時能發動盜壘撕裂對手防線。")
+            elif sb_val >= 15:
+                report_lines.append(f"具備不錯的跑壘速度 ({int(sb_val)} 盜)，能在關鍵時刻多搶下一個壘包。")
+            
+            if len(report_lines) == 0:
+                report_lines.append("這名球員具備穩定的基礎能力，期待他在賽季中有更多突破性的表現！")
+                
+            final_report = " ".join(report_lines)
+            st.info(f"**系統分析：** 根據 {selected_year} 年的數據顯示，{player[name_col]} {final_report}", icon="📋")
             
             st.markdown("---")
             
