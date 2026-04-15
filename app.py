@@ -7,12 +7,10 @@ st.set_page_config(page_title="MLB 數據看板", page_icon="⚾", layout="wide"
 # 2. 注入自訂 CSS 樣式 (極致核彈級修復)
 st.markdown("""
 <style>
-    /* 整體背景 */
     .stApp { background: linear-gradient(135deg, #1e3c72 0%, #1a237e 40%, #0d1117 100%); color: white; }
     [data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
     h1, h2, h3, p, span { color: white !important; font-family: 'Open Sans', sans-serif; }
     
-    /* 數據卡片特效 */
     [data-testid="metric-container"] {
         background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 15px; padding: 20px 15px; transition: all 0.3s ease-in-out;
@@ -20,26 +18,30 @@ st.markdown("""
     
     /* 🔥 終極輸入框修復：雪地寫黑字 */
     .stTextInput [data-baseweb="input"] {
-        background-color: #ffffff !important; /* 強制白底 */
-        border: 2px solid #00ffff !important; /* 青色邊框 */
+        background-color: #ffffff !important;
+        border: 2px solid #00ffff !important;
         border-radius: 8px !important;
     }
     .stTextInput input {
-        color: #000000 !important; /* 強制黑字 */
-        -webkit-text-fill-color: #000000 !important; /* 突破瀏覽器限制的黑字 */
-        caret-color: #000000 !important; /* 🔥 強制打字游標變成黑色 🔥 */
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        caret-color: #000000 !important;
         font-weight: bold !important;
         font-size: 18px !important;
         background-color: transparent !important;
     }
     .stTextInput label { color: #00ffff !important; font-weight: bold !important; font-size: 1.1em !important; }
+    
+    /* Tabs 標籤頁樣式微調 */
+    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+    .stTabs [data-baseweb="tab"] { color: #ccc !important; font-weight: bold; }
+    .stTabs [aria-selected="true"] { color: #00ffff !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# 🗃️ 圖片與字典設定
+# 🗃️ 圖片與字典設定 (豪華擴充版)
 # ==============================
-# 使用 HTML 原生 img 標籤用的 URL
 MLB_HTML_LOGO = "https://upload.wikimedia.org/wikipedia/commons/a/a6/Major_League_Baseball_logo.svg"
 
 TEAM_LOGOS = {
@@ -62,37 +64,21 @@ TEAM_LOGOS = {
 }
 
 PLAYER_PHOTOS = {
-    # ⚾ 道奇三巨頭
     "Shohei Ohtani": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39832.png",
     "Mookie Betts": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33039.png",
     "Freddie Freeman": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30193.png",
-    
-    # ⚾ 洋基雙星 + 王牌
     "Aaron Judge": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33192.png",
     "Juan Soto": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39622.png",
     "Gerrit Cole": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32081.png",
-    
-    # ⚾ 其他國聯頂級球星
     "Bryce Harper": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31696.png",
     "Ronald Acuna Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39459.png",
-    "Ronald Acuña Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39459.png", # 防呆 (帶有波浪符號的拼法)
     "Fernando Tatis Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35983.png",
     "Manny Machado": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31097.png",
     "Pete Alonso": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/37498.png",
-    "Matt Olson": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32767.png",
-    "Austin Riley": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/36329.png",
-    "Paul Goldschmidt": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/31027.png",
-    "Corbin Carroll": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/42403.png",
-
-    # ⚾ 其他美聯頂級球星
     "Mike Trout": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/30836.png",
     "Vladimir Guerrero Jr.": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/35002.png",
     "Francisco Lindor": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32129.png",
-    "Corey Seager": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32691.png",
-    "Yordan Alvarez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39876.png",
-    "Julio Rodriguez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/41044.png",
-    "Rafael Devers": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/33859.png",
-    "Jose Ramirez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/32801.png"
+    "Yordan Alvarez": "https://a.espncdn.com/combiner/i?img=/i/headshots/mlb/players/full/39876.png"
 }
 DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
 
@@ -103,13 +89,12 @@ st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", widt
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
 selected_year = st.sidebar.selectbox("📅 選擇賽季", [2025, 2024, 2023])
 
-# --- 🔥 MLB Logo 原生 HTML 強制渲染 (避開 st.image 的限制) ---
+# --- MLB Logo ---
 st.markdown(f"""
     <div style="display: flex; justify-content: center; margin-bottom: 20px;">
         <img src="{MLB_HTML_LOGO}" width="200" alt="MLB Logo">
     </div>
 """, unsafe_allow_html=True)
-# -----------------------------------------------------------
 
 @st.cache_data
 def load_data(year):
@@ -123,8 +108,7 @@ def load_data(year):
 data = load_data(selected_year)
 
 if not data.empty:
-    # 搜尋框
-    search_name = st.text_input("🔍 搜尋球員名字 (例如: Ohtani, Judge)", "")
+    search_name = st.text_input("🔍 搜尋球員名字 (例如: Ohtani, Judge, Soto)", "")
     
     name_col = 'Name' if 'Name' in data.columns else (data.columns[1] if len(data.columns) > 1 else data.columns[0])
     team_col = next((col for col in ['Tm', 'Team', 'team'] if col in data.columns), None)
@@ -153,6 +137,7 @@ if not data.empty:
             
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # --- 顯示當前選擇年份的數據 ---
             c1, c2, c3, c4 = st.columns(4)
             c1.metric(label="🔥 全壘打 (HR)", value=player.get('HR', 0))
             c2.metric(label="🎯 打擊率 (BA)", value=player.get('BA', 0.0))
@@ -160,7 +145,49 @@ if not data.empty:
             c4.metric(label="💨 盜壘 (SB)", value=player.get('SB', 0))
             
             st.markdown("---")
+            
+            # ==========================================
+            # 📈 創意擴展：跨年份的生涯軌跡圖 (2023-2025)
+            # ==========================================
+            st.markdown("### 📈 跨賽季數據軌跡 (2023 - 2025)")
+            
+            # 自動去抓 2023, 2024, 2025 的 CSV 找這個人
+            trend_records = []
+            for y in [2023, 2024, 2025]:
+                df_year = load_data(y)
+                if not df_year.empty and name_col in df_year.columns:
+                    p_match = df_year[df_year[name_col].astype(str).str.contains(search_name, case=False, na=False)]
+                    if not p_match.empty:
+                        # 將數據轉為浮點數存入清單
+                        trend_records.append({
+                            "Year": str(y),
+                            "HR": float(p_match.iloc[0].get('HR', 0)),
+                            "OPS": float(p_match.iloc[0].get('OPS', 0.0)),
+                            "BA": float(p_match.iloc[0].get('BA', 0.0))
+                        })
+            
+            # 如果有找到至少一筆歷史數據，就畫圖
+            if len(trend_records) > 0:
+                # 整理成 DataFrame 並把 Year 設為 X 軸 (Index)
+                trend_df = pd.DataFrame(trend_records).set_index("Year")
+                trend_df = trend_df.sort_index() # 確保順序是 2023 -> 2024 -> 2025
+                
+                # 使用 Tabs 將三種圖表分開，才不會因為數值大小差異太大糊在一起
+                tab1, tab2, tab3 = st.tabs(["🔥 全壘打趨勢", "💥 OPS 趨勢", "🎯 打擊率趨勢"])
+                
+                with tab1:
+                    st.line_chart(trend_df[["HR"]], color="#ff4b4b") # 紅色線
+                with tab2:
+                    st.line_chart(trend_df[["OPS"]], color="#00ffff") # 青色線
+                with tab3:
+                    st.line_chart(trend_df[["BA"]], color="#00ff00") # 綠色線
+            else:
+                st.info("📊 尚未累積足夠的歷史賽季數據。")
+            
+            st.markdown("---")
+            # --- 顯示原始資料表 ---
             st.dataframe(filtered_data, use_container_width=True)
+            
         else:
             st.warning("查無此人，請確認拼字。", icon="⚠️")
             
