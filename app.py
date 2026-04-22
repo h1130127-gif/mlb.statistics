@@ -66,7 +66,6 @@ DEFAULT_PLAYER_PHOTO = "https://cdn-icons-png.flaticon.com/512/166/166344.png"
 # ==============================
 # 🧩 網頁內容排版與邏輯
 # ==============================
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3014/3014385.png", width=80)
 st.sidebar.markdown("<h2 style='text-align: center; color: white;'>設定條件</h2>", unsafe_allow_html=True)
 selected_year = st.sidebar.selectbox("📅 選擇賽季", [2025, 2024, 2023])
 
